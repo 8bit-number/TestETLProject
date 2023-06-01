@@ -9,7 +9,7 @@ To successfully deploy this architecture on AWS, please ensure that you have com
 
 - AWS Account: Create an AWS account if you haven't already and obtain the necessary access credentials (Access Key, Access Secret).
 - Environment Variables: Store the access credentials securely in .env file. Additionally, include the required information for bucket names, as these must be globally unique. When deploying, you will have different buckets based on your configuration.
-- Dependencies: Install the latest versions of `boto3` and `terraform` and `python`.
+- Dependencies: Install the latest versions of `boto3`, `terraform` and `python`.
 
 After ensuring all the requirements are met you can run `terraform init` followed by `terraform apply`.
 
