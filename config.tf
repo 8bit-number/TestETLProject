@@ -2,17 +2,32 @@ provider "aws" {}
 
 data "aws_caller_identity" "current" {}
 
+variable "S3_ARTIFACTS_STORAGE" {
+  description = "Bucket where the Terraform artifacts are stored"
+}
+
+variable "GLUE_METADATA_STORAGE" {
+  description = "Bucket where Glue scripts and other metadata is stored"
+}
+
+variable "TARGET_TRANSACTIONS_STORAGE" {
+  description = "Bucket where processed data should be stored"
+}
+
+variable "DDB_TABLE" {
+  description = "Initial DynamoDB table"
+}
+
 
 # IAM [start]
-
 resource "aws_iam_role" "glue_role" {
   name = "glue_role_tf"
 
   assume_role_policy = jsonencode({
-    Version   = "2012-10-17"
+    Version = "2012-10-17"
     Statement = [
       {
-        Actio = "sts:AssumeRole"
+        Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
           Service = "glue.amazonaws.com"
@@ -38,28 +53,30 @@ resource "aws_iam_role_policy_attachment" "s3_role_attachment" {
 }
 
 resource "aws_iam_role_policy_attachment" "athena_role_attachment" {
-  role      = aws_iam_role.glue_role.name
+  role = aws_iam_role.glue_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonAthenaFullAccess"
 }
 # IAM [end]
 
+
 # S3 [start]
 resource "aws_s3_bucket" "tf-artifacts-storage" {
-  bucket = "tf-artifacts-storage"
+  bucket = var.S3_ARTIFACTS_STORAGE
 }
 
 resource "aws_s3_bucket" "glue-metadata-storage" {
-  bucket = "glue-metadata-storage"
+  bucket = var.GLUE_METADATA_STORAGE
 }
 
 resource "aws_s3_bucket" "target-transactions-storage" {
-  bucket = "tgt-transactions-storage"
+  bucket = var.TARGET_TRANSACTIONS_STORAGE
 }
 # S3 [end]
 
+
 # DynamoDB [start]
 resource "aws_dynamodb_table" "ddb_table" {
-  name = "ddb_transactions_data"
+  name = var.DDB_TABLE
   billing_mode = "PAY_PER_REQUEST"
   hash_key = "UniqueID"
 
@@ -69,6 +86,7 @@ resource "aws_dynamodb_table" "ddb_table" {
   }
 }
 # DynamoDB [end]
+
 
 # Glue [start]
 resource "aws_glue_catalog_database" "glue_source_db" {
@@ -83,7 +101,7 @@ resource "aws_glue_catalog_database" "glue_dest_db" {
 
 resource "aws_glue_crawler" "glue_source_location_crawler" {
   database_name = aws_glue_catalog_database.glue_source_db.name
-  schedule      = "cron(00 8 ? * * *)"
+  schedule = "cron(00 8 ? * * *)"
   name = "source_crawler_"
   description = "Crawler for fast data retrieval from DynamoDB"
   role = aws_iam_role.glue_role.arn
@@ -95,7 +113,6 @@ resource "aws_glue_crawler" "glue_source_location_crawler" {
       }
     }
   )
-
   dynamodb_target {
     path = aws_dynamodb_table.ddb_table.name
   }
@@ -123,8 +140,8 @@ resource "aws_glue_crawler" "glue_source_location_crawler" {
 
 resource "aws_s3_object" "glue_script_location" {
   bucket = aws_s3_bucket.tf-artifacts-storage.id
-  key    = "Scripts/DynamoDB_ETL_S3.py"
-  source = "DynamoDB_ETL_S3.py"
+  key = "Scripts/DynamoDB_ETL_S3.py"
+  source = "jobs/dynamodb_etl_s3.py"
   }
 
 resource "aws_glue_job" "glue_job" {
