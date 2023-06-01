@@ -102,7 +102,7 @@ resource "aws_glue_catalog_database" "glue_dest_db" {
 resource "aws_glue_crawler" "glue_source_location_crawler" {
   database_name = aws_glue_catalog_database.glue_source_db.name
   schedule = "cron(00 8 ? * * *)"
-  name = "source_crawler_"
+  name = "source_table_crawler"
   description = "Crawler for fast data retrieval from DynamoDB"
   role = aws_iam_role.glue_role.arn
   configuration = jsonencode(
@@ -141,7 +141,7 @@ resource "aws_glue_crawler" "glue_source_location_crawler" {
 resource "aws_s3_object" "glue_script_location" {
   bucket = aws_s3_bucket.tf-artifacts-storage.id
   key = "Scripts/DynamoDB_ETL_S3.py"
-  source = "jobs/dynamodb_etl_s3.py"
+  source = "../jobs/dynamodb_etl_s3.py"
   }
 
 resource "aws_glue_job" "glue_job" {
@@ -163,7 +163,7 @@ resource "aws_glue_job" "glue_job" {
 }
 
 resource "aws_glue_trigger" "glue_trigger_ETL_job" {
-  name = "ETL_job_trigger_"
+  name = "src_etl_trigger"
   description = "Glue Trigger for automatic job kick-off after the Crawler run succeeds"
   type = "CONDITIONAL"
   actions {
