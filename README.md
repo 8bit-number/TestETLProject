@@ -1,8 +1,6 @@
 **Project Summary - Data Ingestion from DynamoDB to S3**
 
 This project involves ingesting a portion (~1000 records) of E-Commerce transactions data from a Kaggle [dataset](https://www.kaggle.com/datasets/carrie1/ecommerce-data) into AWS S3.
-This project involves ingesting a portion (~1000 records) of E-Commerce transactions data from a Kaggle [dataset](https://www.kaggle.com/datasets/carrie1/ecommerce-data) into AWS S3.
-
 The project is set up using Terraform, with the necessary configuration located in `config.tf`. To ensure security, all credentials are stored as environment variables.
 
 **Prerequisites**
